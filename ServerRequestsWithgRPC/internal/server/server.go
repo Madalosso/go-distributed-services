@@ -11,6 +11,9 @@ type Config struct {
 	CommitLog CommitLog
 }
 
+// Note: Very interesting line: This is a compile-time assertion
+// to make sure that the definition of grpcServer
+// matches what is being imported by the api
 var _ api.LogServer = (*grpcServer)(nil)
 
 type grpcServer struct {
@@ -64,7 +67,8 @@ func (s *grpcServer) ConsumeStream(req *api.ConsumeRequest, stream api.Log_Consu
 	}
 }
 
-func (s *grpcServer) Produce(ctx context.Context, req *api.ProduceRequest) (*api.ProduceResponse, error) {
+func (s *grpcServer) Produce(ctx context.Context, req *api.ProduceRequest) (
+	*api.ProduceResponse, error) {
 	offset, err := s.CommitLog.Append(req.Record)
 	if err != nil {
 		return nil, err

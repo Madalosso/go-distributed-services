@@ -15,7 +15,7 @@ message ProduceRequest {
   Record record =1;
 }
 message ProduceResponse {
-  Record offset =1;
+  uint64 offset =1;
 }
 message ConsumeRequest {
   uint64 offset =1 ;
