@@ -24,6 +24,7 @@ func (e ErrOffsetOutOfRange) GRPCStatus() *status.Status {
 	}
 	std, err := st.WithDetails(d)
 	if err != nil {
+		//Q: shouldn't this panic to make it easier to identify what happened?
 		return st
 	}
 	return std

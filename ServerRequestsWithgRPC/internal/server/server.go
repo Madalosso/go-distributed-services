@@ -4,6 +4,7 @@ import (
 	"context"
 
 	api "github.com/madalosso/proglog/api/v1"
+	"google.golang.org/grpc"
 	// "google.golang.org/grpc"
 )
 
@@ -15,6 +16,17 @@ type Config struct {
 // to make sure that the definition of grpcServer
 // matches what is being imported by the api
 var _ api.LogServer = (*grpcServer)(nil)
+
+// TODO: Revisit and understand better
+func NewGRPCServer(config *Config) (*grpc.Server, error) {
+	gsrv := grpc.NewServer()
+	srv, err := newgrpcServer(config)
+	if err != nil {
+		return nil, err
+	}
+	api.RegisterLogServer(gsrv, srv)
+	return gsrv, nil
+}
 
 type grpcServer struct {
 	api.UnimplementedLogServer
