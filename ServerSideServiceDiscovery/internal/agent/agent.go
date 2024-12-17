@@ -109,6 +109,9 @@ func (a *Agent) setupServer() error {
 		return err
 	}
 	rpcAddr, err := a.RPCAddr()
+	if err != nil {
+		return err
+	}
 
 	ln, err := net.Listen("tcp", rpcAddr)
 
@@ -124,8 +127,9 @@ func (a *Agent) setupServer() error {
 
 	return nil
 }
+
 func (a *Agent) setupMembership() error {
-	// hm... think it through...
+	// hm... think it through... Same?
 	// rpcAddr, err := a.RPCAddr()
 	rpcAddr, err := a.Config.RPCAddr()
 	if err != nil {
