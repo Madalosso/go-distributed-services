@@ -1,12 +1,15 @@
 package log
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/cloudflare/cfssl/api"
 	"github.com/hashicorp/raft"
 	raftboltdb "github.com/hashicorp/raft-boltdb"
+	"google.golang.org/protobuf/proto"
 )
 
 type DistributedLog struct {
@@ -77,7 +80,7 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 	)
 
 	config := raft.DefaultConfig()
-	config.LocalID := l.config.Raft.LocalID
+	config.LocalID = l.config.Raft.LocalID
 	if l.config.Raft.HeartbeatTimeout != 0 {
 		config.HeartbeatTimeout = l.config.Raft.HeartbeatTimeout
 	}
@@ -106,11 +109,56 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 	}
 	if l.config.Raft.Bootstrap && !hasState {
 		config := raft.Configuration{
-			Servers:= []raft.Server{
-				{ID: config.LocalID, Address: transport.LocalAddr()}
+			Servers: []raft.Server{
+				{ID: config.LocalID, Address: transport.LocalAddr()},
 			},
 		}
 		err = l.raft.BootstrapCluster(config).Error()
 	}
 	return err
+}
+
+func (l *DistributedLog) Append(record *api.Record) (uint64, error) {
+	res, err := l.apply(
+		AppendRequestType,
+		&api.ProduceRequest{Record: record},
+	)
+	if err != nil {
+		return 0, err
+	}
+	// TODO: study more type assertion
+	return res.(*api.ProduceResponse).Offset, nil
+}
+
+// CHECK: interface{}
+func (l *DistributedLog) apply(reqType RequestType, req proto.Message) (interface{}, error) {
+	var buf bytes.Buffer
+
+	_, err := buf.Write([]byte{byte(reqType)})
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := proto.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+	_, err = buf.Write(b)
+	if err != nil {
+		return nil, err
+	}
+
+	timeout := 10 * time.Second
+	future := l.raft.Apply(buf.Bytes(), timeout)
+	// TODO: understand future.Error and future.Response()
+	if future.Error() != nil {
+		return nil, future.Error()
+	}
+	res := future.Response()
+	// assert error, skip if true
+	if err, ok := res.(error); ok {
+		return nil, err
+	}
+
+	return res, nil
 }
