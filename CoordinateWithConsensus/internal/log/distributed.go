@@ -150,14 +150,17 @@ func (l *DistributedLog) apply(reqType RequestType, req proto.Message) (interfac
 
 	timeout := 10 * time.Second
 
+	// This blocks execution (raft channels wait for internal processing)
+	// ApplyFuture is an interface with Response() and Error(),
+	// both types logFuture and errorFuture fulfill the interface so either
+	// of these types can be returned. We first check if Error is present,
+	// if not, then check Response
 	future := l.raft.Apply(buf.Bytes(), timeout)
 
-	// TODO: understand future.Error and future.Response()
 	if future.Error() != nil {
 		return nil, future.Error()
 	}
 	res := future.Response()
-	// assert error, skip if true
 	if err, ok := res.(error); ok {
 		return nil, err
 	}
