@@ -45,7 +45,7 @@ gencert:
 
 .PHONY: test
 test: ${CONFIG_PATH}/model.conf	${CONFIG_PATH}/policy.csv
-	go test -race ./...
+	go --race test ./...
 
 .PHONY: compile
 compile:

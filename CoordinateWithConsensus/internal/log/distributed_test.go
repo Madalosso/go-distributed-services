@@ -84,7 +84,7 @@ func TestMultipleNodes(t *testing.T) {
 	err := logs[0].Leave("1")
 	require.NoError(t, err)
 
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 
 	off, err := logs[0].Append(&api.Record{
 		Value: []byte("third"),
