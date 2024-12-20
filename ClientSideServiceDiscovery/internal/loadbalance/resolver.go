@@ -35,7 +35,9 @@ func (r *Resolver) Build(target resolver.Target,
 		)
 	}
 
-	r.serviceConfig = r.clientConn.ParseServiceConfig(fmt.Sprintf(`{"loadBalancingConfig": {{"%s": {}}}}`, Name))
+	r.serviceConfig = r.clientConn.ParseServiceConfig(
+		fmt.Sprintf(`{"loadBalancingConfig":[{"%s":{}}]}`, Name),
+	)
 	var err error
 	r.resolverConn, err = grpc.Dial(target.Endpoint, dialOpts...)
 	if err != nil {
@@ -56,6 +58,7 @@ func (r *Resolver) ResolveNow(resolver.ResolveNowOptions) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	client := api.NewLogClient(r.resolverConn)
+	// get cluster and then set on cc attributes
 	ctx := context.Background()
 	res, err := client.GetServers(ctx, &api.GetServersRequest{})
 	if err != nil {
@@ -68,11 +71,17 @@ func (r *Resolver) ResolveNow(resolver.ResolveNowOptions) {
 	var addrs []resolver.Address
 	for _, server := range res.Servers {
 		addrs = append(addrs, resolver.Address{
-			Addr:       server.RpcAddr,
-			Attributes: attributes.New("is_leader", server.IsLeader),
+			Addr: server.RpcAddr,
+			Attributes: attributes.New(
+				"is_leader",
+				server.IsLeader,
+			),
 		})
 	}
-	r.clientConn.UpdateState(resolver.State{Addresses: addrs, ServiceConfig: r.serviceConfig})
+	r.clientConn.UpdateState(resolver.State{
+		Addresses:     addrs,
+		ServiceConfig: r.serviceConfig,
+	})
 }
 
 func (r *Resolver) Close() {

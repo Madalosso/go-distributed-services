@@ -37,7 +37,7 @@ func (p *Picker) Build(buildInfo base.PickerBuildInfo) balancer.Picker {
 
 func (p *Picker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	p.mu.RLock()
-	defer p.mu.RLock()
+	defer p.mu.RUnlock()
 	var result balancer.PickResult
 	if strings.Contains(info.FullMethodName, "Produce") || len(p.followers) == 0 {
 		result.SubConn = p.leader
