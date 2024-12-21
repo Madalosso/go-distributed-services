@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -30,9 +31,11 @@ func (c *cli) run(cmd *cobra.Command, args []string) error {
 }
 
 func (c *cli) setupConfig(cmd *cobra.Command, args []string) error {
+	fmt.Println("SetupConfig")
 	var err error
 
 	configFile, err := cmd.Flags().GetString("config-file")
+	fmt.Println("configFile: ", configFile)
 	if err != nil {
 		return err
 	}
@@ -41,6 +44,7 @@ func (c *cli) setupConfig(cmd *cobra.Command, args []string) error {
 
 	if err = viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			fmt.Println("error reading file")
 			return err
 		}
 	}
@@ -90,6 +94,7 @@ type cfg struct {
 }
 
 func main() {
+	fmt.Println("WEPA")
 	cli := &cli{}
 
 	cmd := &cobra.Command{
