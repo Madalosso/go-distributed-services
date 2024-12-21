@@ -6,6 +6,11 @@ ${CONFIG_PATH}/model.conf:
 ${CONFIG_PATH}/policy.csv:
 	cp test/policy.csv $(CONFIG_PATH)/policy.csv
 
+TAG?=0.0.1
+
+build-docker:
+	docker build -t github.com/madalosso/proglog:$(TAG) .
+
 .PHONY: init
 init:
 	mkdir -p ${CONFIG_PATH}
