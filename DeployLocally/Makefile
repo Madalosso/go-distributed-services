@@ -60,3 +60,9 @@ compile:
 		--go_opt=paths=source_relative \
 		--go-grpc_opt=paths=source_relative \
 		--proto_path=.
+
+.PHONY: deploy-local
+deploy-local: build-docker
+	kind load docker-image github.com/madalosso/proglog:$(TAG)
+	helm uninstall proglog
+	helm install proglog deploy/proglog

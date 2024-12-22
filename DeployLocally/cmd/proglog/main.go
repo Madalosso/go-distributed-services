@@ -42,12 +42,12 @@ func (c *cli) setupConfig(cmd *cobra.Command, args []string) error {
 
 	viper.SetConfigFile(configFile)
 
-	if err = viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			fmt.Println("error reading file")
-			return err
-		}
-	}
+	// if err = viper.ReadInConfig(); err != nil {
+	// 	if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+	// 		fmt.Println("error reading file")
+	// 		return err
+	// 	}
+	// }
 	c.cfg.DataDir = viper.GetString("data-dir")
 	c.cfg.NodeName = viper.GetString("node-name")
 	c.cfg.BindAddr = viper.GetString("bind-addr")
